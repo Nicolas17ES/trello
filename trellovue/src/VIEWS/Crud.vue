@@ -17,8 +17,25 @@
     </form>
     <!-- end of create project -->
 
+    <!-- project name + edit propject name -->
     <div v-for="(project, index) in projects" :key="index" class="project">
+      <button @click="deleteProject(project.id)">X</button>
       <h1>{{ project.name }}</h1>
+      <form @submit.prevent="editProjectName(project.id)" class="add-form">
+        <div class="form-control">
+          <input
+            type="editProject"
+            v-model="editProject"
+            name="editProject"
+            placeholder="Edit project"
+          />
+        </div>
+        <input
+          type="submit"
+          value="Edit Project"
+          class="btn btn-block button3"
+        />
+      </form>
 
       <!-- create category -->
 
@@ -50,8 +67,28 @@
           :key="index"
         >
           <section v-if="project.id === category.parent">
+            <!-- delete and edit category -->
+
+            <button @click="deleteCat(category.categoryId)">X</button>
             <h1>{{ category.name }}</h1>
-            <button @click="deleteCat(category.categoryId)">Delete cat</button>
+            <form
+              @submit.prevent="editCategoryName(category.categoryId)"
+              class="add-form"
+            >
+              <div class="form-control">
+                <input
+                  type="editCategory"
+                  v-model="editCategory"
+                  name="editCategory"
+                  placeholder="Edit Category"
+                />
+              </div>
+              <input
+                type="submit"
+                value="Edit Category"
+                class="btn btn-block button3"
+              />
+            </form>
 
             <!-- add a Task component -->
             <AddTask @add-task="addTask" :category="category.categoryId" />
@@ -62,7 +99,8 @@
                   <li>{{ post.id }}</li>
                   <button @click="deleteTask(post.id)">DELETE Task</button>
                   <li>{{ post.title }}</li>
-                  <li>{{ post.content }}</li>
+                  <!-- <li>{{ post.content }}</li> -->
+                  <router-link to="/edits">EDIT TASK NAME</router-link>
 
                   <!-- add comment -->
                   <form @submit.prevent="addComment(post.id)" class="add-form">
@@ -82,10 +120,10 @@
                   </form>
                   <!-- end of  add comment -->
 
-
                   <div v-for="(comment, index) in comments" :key="index">
                     <ul v-if="comment.postId === post.id">
                       <li>{{ comment.content }}</li>
+                      <router-link to="/edits">EDIT COMMENT </router-link>
                       <button @click="deleteComment(comment.id)">X</button>
                     </ul>
                   </div>
@@ -119,6 +157,8 @@ export default {
       commentContent: "",
       category: "",
       project: "",
+      editProject: "",
+      editCategory: "",
     };
   },
 
@@ -207,12 +247,53 @@ export default {
       this.projects = [...this.projects, data];
     },
 
+    //edit project//
+
+    async editProjectName(id) {
+      let projectName = this.editProject;
+
+      const res = await fetch(
+        `http://localhost:8000/wp-json/wp/v2/categories/${id}`
+      );
+      const data = await res.json();
+      data.name = projectName;
+      await fetch(
+        `http://localhost:8000/wp-json/wp/v2/categories/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-type": "application/json",
+            Authorization: `Bearer ${this.tokens.token}`,
+          },
+          body: JSON.stringify(data),
+        }
+      );
+      this.projects = this.projects.map((project) =>
+        project.id === id ? { ...project, name: this.editProject } : project
+      );
+      this.editProject = "";
+    },
+
+    //delete a project //
+    async deleteProject(id) {
+      const response = await fetch(
+        `http://localhost:8000/wp-json/wp/v2/categories/${id}?force=true`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${this.tokens.token}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        this.projects = this.projects.filter((project) => project.id !== id);
+      }
+    },
+
     // CRUD CHILD CATEGORIES = CATEGORIES
     //get categories//
     async getCategories() {
-      const res = await fetch(
-        "http://localhost:8000/wp-json/wp/v2/categories"
-      );
+      const res = await fetch("http://localhost:8000/wp-json/wp/v2/categories");
       const data = await res.json();
 
       await data.forEach((category) => {
@@ -257,6 +338,34 @@ export default {
       this.categories = [...this.categories, data];
     },
 
+    //edit categories//
+    async editCategoryName(id) {
+      let categoryName = this.editCategory;
+
+      const res = await fetch(
+        `http://localhost:8000/wp-json/wp/v2/categories/${id}`
+      );
+      const data = await res.json();
+      data.name = categoryName;
+      await fetch(
+        `http://localhost:8000/wp-json/wp/v2/categories/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-type": "application/json",
+            Authorization: `Bearer ${this.tokens.token}`,
+          },
+          body: JSON.stringify(data),
+        }
+      );
+  
+      this.categories = this.categories.map((cat) =>
+        cat.categoryId === id ? { ...cat, name: this.editCategory } : cat
+      );
+
+      this.editCategory = "";
+    },
+
     //Delete categories
     async deleteCat(id) {
       const response = await fetch(
@@ -268,10 +377,11 @@ export default {
           },
         }
       );
-
-      this.categories = this.categories.filter(
-        (category) => category.categoryId !== id
-      );
+      if (response.status === 200) {
+        this.categories = this.categories.filter(
+          (category) => category.categoryId !== id
+        );
+      }
     },
 
     //CRUD POSTS//
@@ -313,8 +423,7 @@ export default {
         });
         const data = await jwt.json();
 
-        // const data = await jwt.json();
-        // console.log(data);
+        console.log(data);
       } catch (err) {
         console.log(err);
       }
@@ -429,6 +538,11 @@ export default {
 <style scoped>
 #projectname {
   font-size: 3em;
+}
+
+.project {
+  border: 2px black solid;
+  margin: 20px 20px 50px 20px;
 }
 .category {
   border: 2px black solid;

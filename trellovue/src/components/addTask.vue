@@ -11,7 +11,7 @@
           placeholder="Add Title"
         />
       </div>
-      <div class="form-control">
+      <!-- <div class="form-control">
         <label>Content</label>
         <input
           type="content"
@@ -19,7 +19,7 @@
           name="content"
           placeholder="Content"
         />
-      </div>
+      </div> -->
       <!-- <div class="form-control">
         <label>Status</label>
         <input
