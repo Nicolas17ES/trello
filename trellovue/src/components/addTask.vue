@@ -64,6 +64,11 @@ export default {
         status: this.status,
         categories: this.category,
       };
+      const newCat = {
+       
+        status: this.status,
+        categories: this.category,
+      };
 
       this.$emit("add-task", newTask);
 
