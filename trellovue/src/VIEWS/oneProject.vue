@@ -5,39 +5,13 @@
     <div v-for="(project, index) in projects" :key="index" class="project">
       <button @click="deleteProject(project.id)">X</button>
       <h1>{{ project.name }}</h1>
-      <form @submit.prevent="editProjectName(project.id)" class="add-form">
-        <div class="form-control">
-          <input
-            type="editProject"
-            v-model="editProject"
-            name="editProject"
-            placeholder="Edit project"
-          />
-        </div>
-        <input
-          type="submit"
-          value="Edit Project"
-          class="btn btn-block button3"
-        />
-      </form>
+      <AddProject @edit-project="editProjectName" :id="project.id" />
 
       <!-- create a cateegory -->
       <h3>CREATE CATEGORY</h3>
-      <form @submit.prevent="addCat(project.id)" class="add-form">
-        <div class="form-control">
-          <input
-            type="category"
-            v-model="category"
-            name="category"
-            placeholder="Add Category"
-          />
-        </div>
-        <input
-          type="submit"
-          value="Add Category"
-          class="btn btn-block button3"
-        />
-      </form>
+
+      <AddCategory @add-category="addCat" :project="project.id" />
+
       <section class="allCats">
         <div
           class="category"
@@ -49,27 +23,15 @@
 
             <button @click="deleteCat(category.categoryId)">X</button>
             <h1>{{ category.name }}</h1>
-            <form
-              @submit.prevent="editCategoryName(category.categoryId)"
-              class="add-form"
-            >
-              <div class="form-control">
-                <input
-                  type="editCategory"
-                  v-model="editCategory"
-                  name="editCategory"
-                  placeholder="Edit Category"
-                />
-              </div>
-              <input
-                type="submit"
-                value="Edit Category"
-                class="btn btn-block button3"
-              />
-            </form>
+            <AddCategory
+              @edit-category="editCategoryName"
+              :id="category.categoryId"
+            />
+
             <!-- END OF delete and edit category -->
 
             <!-- add a Task component -->
+            <h4>Add Task</h4>
             <AddTask @add-task="addTask" :category="category.categoryId" />
             <!-- END OF add a Task component -->
 
@@ -79,9 +41,10 @@
                   <li>{{ post.id }}</li>
                   <button @click="deleteTask(post.id)">X</button>
                   <li>{{ post.title }}</li>
+                  <AddTask @edit-task="editPostName" :id="post.id" />
 
                   <!-- EDIT A POST -->
-                  <form
+                  <!-- <form
                     @submit.prevent="editPostName(post.id)"
                     class="add-form"
                   >
@@ -98,25 +61,16 @@
                       value="Edit Post"
                       class="btn btn-block button3"
                     />
-                  </form>
+                  </form> -->
                   <!-- END OF EDIT A POST -->
 
                   <!-- add comment -->
-                  <form @submit.prevent="addComment(post.id)" class="add-form">
-                    <div class="form-control">
-                      <input
-                        type="content"
-                        v-model="commentContent"
-                        name="content"
-                        placeholder="Add Comment to the Post"
-                      />
-                    </div>
-                    <input
-                      type="submit"
-                      value="Add comment"
-                      class="btn btn-block button3"
-                    />
-                  </form>
+                  <AddComment
+                    @add-comment="addComment"
+                    :post="post.id"
+                    :tokens="tokens"
+                  />
+
                   <!-- end of  add comment -->
 
                   <div v-for="(comment, index) in comments" :key="index">
@@ -160,9 +114,15 @@
 
 <script>
 import AddTask from "../components/addTask";
+import AddCategory from "../components/addCategory";
+import AddComment from "../components/addComment";
+import AddProject from "../components/addProject";
 export default {
   components: {
     AddTask,
+    AddCategory,
+    AddComment,
+    AddProject,
   },
   name: "oneProject",
   data() {
@@ -185,7 +145,7 @@ export default {
   created() {
     this.getToken();
     this.getProjects();
-    // this.getCategories();
+    this.getCategories();
     this.getTasks();
     this.getComments();
   },
@@ -223,7 +183,7 @@ export default {
     //get projects//
     async getProjects() {
       const res = await fetch(
-        "http://localhost:8000/wp-json/wp/v2/categories/" + this.id
+        `http://localhost:8000/wp-json/wp/v2/categories/${this.id}/?per_page=99`
       );
       const data = await res.json();
 
@@ -235,8 +195,8 @@ export default {
     },
 
     //edit project//
-    async editProjectName(id) {
-      let projectName = this.editProject;
+    async editProjectName(editProject, id) {
+      let projectName = editProject.name;
 
       const res = await fetch(
         `http://localhost:8000/wp-json/wp/v2/categories/${id}`
@@ -252,9 +212,8 @@ export default {
         body: JSON.stringify(data),
       });
       this.projects = this.projects.map((project) =>
-        project.id === id ? { ...project, name: this.editProject } : project
+        project.id === id ? { ...project, name: editProject.name } : project
       );
-      this.editProject = "";
     },
 
     //delete a project //
@@ -270,12 +229,14 @@ export default {
       );
       if (response.status === 200) {
         this.projects = this.projects.filter((project) => project.id !== id);
+        this.$router.push("/");
       }
     },
     // CRUD CHILD CATEGORIES = CATEGORIES
+
     //get categories//
     async getCategories() {
-      const res = await fetch("http://localhost:8000/wp-json/wp/v2/categories");
+      const res = await fetch("http://localhost:8000/wp-json/wp/v2/categories/?per_page=99");
       const data = await res.json();
 
       let catArr = [];
@@ -300,18 +261,7 @@ export default {
 
     //create category
 
-    async addCat(id) {
-      if (!this.category) {
-        alert("Please add a category");
-      }
-
-      const newCat = {
-        name: this.category,
-        parent: id,
-      };
-
-      this.category = "";
-
+    async addCat(newCat) {
       const res = await fetch(
         "http://localhost:8000/wp-json/wp/v2/categories",
         {
@@ -328,8 +278,8 @@ export default {
     },
 
     //edit categories//
-    async editCategoryName(id) {
-      let categoryName = this.editCategory;
+    async editCategoryName(editCat, id) {
+      let categoryName = editCat.name;
 
       const res = await fetch(
         `http://localhost:8000/wp-json/wp/v2/categories/${id}`
@@ -346,7 +296,7 @@ export default {
       });
 
       this.categories = this.categories.map((cat) =>
-        cat.categoryId === id ? { ...cat, name: this.editCategory } : cat
+        cat.categoryId === id ? { ...cat, name: editCat.name } : cat
       );
 
       this.editCategory = "";
@@ -379,32 +329,32 @@ export default {
         const res = await fetch("http://localhost:8000/wp-json/wp/v2/posts");
         const data = await res.json();
 
-        await this.getCategories();
-        let catId = [];
-        // category.categoryId == post.categories
-        this.categories.forEach((cat) => {
-          catId.push(cat.categoryId);
-        });
+        // await this.getCategories();
+        // let catId = [];
+        // // category.categoryId == post.categories
+        // this.categories.forEach((cat) => {
+        //   catId.push(cat.categoryId);
+        // });
 
-        let postCat = [];
-        let merged = [];
-        let ids = [];
-        for (let i = 0; i < data.length; i++) {
-          postCat.push(data[i].categories);
-          merged = [].concat.apply([], postCat);
-        }
-        for (let j = 0; j < merged.length; j++) {
-          if (catId.includes(merged[j])) {
-            ids.push(data[j].id);
-          }
-        }
+        // let postCat = [];
+        // let merged = [];
+        // let ids = [];
+        // for (let i = 0; i < data.length; i++) {
+        //   postCat.push(data[i].categories);
+        //   merged = [].concat.apply([], postCat);
+        // }
+        // for (let j = 0; j < merged.length; j++) {
+        //   if (catId.includes(merged[j])) {
+        //     ids.push(data[j].id);
+        //   }
+        // }
 
-        for (let k = 0; k < ids.length; k++) {
-          const res2 = await fetch(
-            "http://localhost:8000/wp-json/wp/v2/posts/" + ids[k]
-          );
-          const data2 = await res2.json();
-          console.log(data2)
+        // for (let k = 0; k < ids.length; k++) {
+        //   const res2 = await fetch(
+        //     "http://localhost:8000/wp-json/wp/v2/posts/" + ids[k]
+        //   );
+        await data.forEach((data2) => {
+          console.log(data2);
           let postObj = {};
           postObj.id = data2.id;
           postObj.title = data2.title.rendered;
@@ -413,7 +363,7 @@ export default {
           postObj.status = data2.status;
           postObj.categories = data2.categories;
           this.posts.push(postObj);
-        }
+        });
       } catch (err) {
         console.log(err);
       }
@@ -443,8 +393,8 @@ export default {
 
     //edit a post//
 
-    async editPostName(id) {
-      let postName = this.editPost;
+    async editPostName(editTask, id) {
+      let postName = editTask.title;
 
       const res = await fetch(
         `http://localhost:8000/wp-json/wp/v2/posts/${id}`
@@ -461,7 +411,7 @@ export default {
       });
 
       this.posts = this.posts.map((post) =>
-        post.id === id ? { ...post, title: this.editPost } : post
+        post.id === id ? { ...post, title: editTask.title } : post
       );
 
       this.editPost = "";
@@ -510,22 +460,8 @@ export default {
     },
 
     //add comment
-    async addComment(id) {
+    async addComment(newComment) {
       try {
-        if (!this.commentContent) {
-          alert("Please add a comment");
-        }
-        console.log(id);
-
-        const newComment = {
-          post: id,
-          author_name: this.tokens.user_nicename,
-          author_email: this.tokens.user_email,
-          content: this.commentContent,
-          status: "approved",
-        };
-        this.commentContent = "";
-
         const response = await fetch(
           "http://localhost:8000/wp-json/wp/v2/comments",
           {

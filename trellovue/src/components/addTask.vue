@@ -1,35 +1,17 @@
 <template>
   <div class="one">
-    <h3>Add Task</h3>
+    
     <form @submit="onSubmit" class="add-form">
       <div class="form-control">
-        <label>Title</label>
+        
         <input
           type="title"
           v-model="title"
           name="title"
-          placeholder="Add Title"
+          :placeholder="[this.id ? 'Edit Task' : 'Add Task']"
         />
       </div>
-      <!-- <div class="form-control">
-        <label>Content</label>
-        <input
-          type="content"
-          v-model="content"
-          name="content"
-          placeholder="Content"
-        />
-      </div> -->
-      <!-- <div class="form-control">
-        <label>Status</label>
-        <input
-          type="status"
-          v-model="status"
-          name="staus"
-          placeholder="status"
-        />
-      </div> -->
-      <input type="submit" value="Save Task" class="btn btn-block button3" />
+      <input type="submit" :value="[this.id ? 'Edit Task' : 'Add Task']" class="btn btn-block button3" />
     </form>
   </div>
   <!-- form -->
@@ -40,6 +22,7 @@ export default {
   name: "addTask",
   props: {
     category: Number,
+    id: Number,
   },
   data() {
     return {
@@ -64,25 +47,19 @@ export default {
         status: this.status,
         categories: this.category,
       };
-      const newCat = {
-       
-        status: this.status,
-        categories: this.category,
+
+      const editTask = {
+        title: this.title,
       };
 
       this.$emit("add-task", newTask);
+      this.$emit("edit-task", editTask, this.id);
 
       this.title = "";
       this.content = "";
-      this.status = "";
     },
   },
 };
 </script>
 
-<style scoped>
 
-.one{
-  border: 1px solid black;
-}
-</style>
