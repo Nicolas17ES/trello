@@ -1,26 +1,28 @@
 <template>
-  <h1>WELCOME TO TRELLO</h1>
-  <h3>View your projects:</h3>
-  <div class="projectList">
-    <div v-for="(project, index) in projects" :key="index" class="project">
-      <button
-        title="Click to see more"
-        class="fas fa-plus"
-        id="azul"
-        @click="
-          $router.push({
-            name: 'Project',
-            params: { id: project.id },
-          })
-        "
-      >
-        {{ project.name }}
-      </button>
+  <div class="homeView">
+    <h1>WELCOME TO TRELLO</h1>
+    <h3>View your projects:</h3>
+    <div class="projectList">
+      <div v-for="(project, index) in projects" :key="index" class="project">
+        <button
+          title="Click to see more"
+          class="fas fa-plus"
+          id="azul"
+          @click="
+            $router.push({
+              name: 'Project',
+              params: { id: project.id },
+            })
+          "
+        >
+          {{ project.name }}
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- create a project -->
-  <AddProject @add-project="createProject" class="create" />
+    <!-- create a project -->
+    <AddProject @add-project="createProject" class="create" />
+  </div>
 </template>
 
 <script>
@@ -107,19 +109,21 @@ export default {
       );
       const data = await res.json();
       this.projects = [...this.projects, data];
+      this.$router.push(`/project/${data.id}`);
     },
   },
 };
 </script>
 
 <style>
+
 .projectList {
   display: flex;
   justify-content: center;
 }
 
 .project {
-  margin-right: 10px;
+  margin-right: 20px;
 }
 .create {
   margin-top: 100px;
