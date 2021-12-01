@@ -38,30 +38,10 @@
             <div v-for="(post, index) in posts" :key="index">
               <div class="post" v-if="category.categoryId == post.categories">
                 <ul>
-                  <li>{{ post.id }}</li>
                   <button @click="deleteTask(post.id)">X</button>
                   <li>{{ post.title }}</li>
-                  <AddTask @edit-task="editPostName" :id="post.id" />
-
                   <!-- EDIT A POST -->
-                  <!-- <form
-                    @submit.prevent="editPostName(post.id)"
-                    class="add-form"
-                  >
-                    <div class="form-control">
-                      <input
-                        type="editPost"
-                        v-model="editPost"
-                        name="editPost"
-                        placeholder="Edit Post"
-                      />
-                    </div>
-                    <input
-                      type="submit"
-                      value="Edit Post"
-                      class="btn btn-block button3"
-                    />
-                  </form> -->
+                  <AddTask @edit-task="editPostName" :id="post.id" />
                   <!-- END OF EDIT A POST -->
 
                   <!-- add comment -->
@@ -80,25 +60,11 @@
                       <button @click="deleteComment(comment.id)">X</button>
 
                       <!-- edit comment -->
-                      <form
-                        @submit.prevent="editCommentName(comment.id)"
-                        class="add-form"
-                      >
-                        <div class="form-control">
-                          <input
-                            type="editComment"
-                            v-model="editComment"
-                            name="editComment"
-                            placeholder="Edit comment"
-                          />
-                        </div>
-                        <input
-                          type="submit"
-                          value="Edit comment"
-                          class="btn btn-block button3"
-                        />
-                      </form>
-
+                      <AddComment
+                        @edit-comment="editCommentName"
+                        :tokens="tokens"
+                        :id="comment.id"
+                      />
                       <!-- end of edit comment -->
                     </ul>
                   </div>
@@ -236,7 +202,9 @@ export default {
 
     //get categories//
     async getCategories() {
-      const res = await fetch("http://localhost:8000/wp-json/wp/v2/categories/?per_page=99");
+      const res = await fetch(
+        "http://localhost:8000/wp-json/wp/v2/categories/?per_page=99"
+      );
       const data = await res.json();
 
       let catArr = [];
@@ -329,32 +297,7 @@ export default {
         const res = await fetch("http://localhost:8000/wp-json/wp/v2/posts");
         const data = await res.json();
 
-        // await this.getCategories();
-        // let catId = [];
-        // // category.categoryId == post.categories
-        // this.categories.forEach((cat) => {
-        //   catId.push(cat.categoryId);
-        // });
-
-        // let postCat = [];
-        // let merged = [];
-        // let ids = [];
-        // for (let i = 0; i < data.length; i++) {
-        //   postCat.push(data[i].categories);
-        //   merged = [].concat.apply([], postCat);
-        // }
-        // for (let j = 0; j < merged.length; j++) {
-        //   if (catId.includes(merged[j])) {
-        //     ids.push(data[j].id);
-        //   }
-        // }
-
-        // for (let k = 0; k < ids.length; k++) {
-        //   const res2 = await fetch(
-        //     "http://localhost:8000/wp-json/wp/v2/posts/" + ids[k]
-        //   );
         await data.forEach((data2) => {
-          console.log(data2);
           let postObj = {};
           postObj.id = data2.id;
           postObj.title = data2.title.rendered;
@@ -372,7 +315,6 @@ export default {
     //do a post
 
     async addTask(newTask) {
-      this.posts = [...this.posts, newTask];
       // newTask.categories = [2];
       try {
         const jwt = await fetch("http://localhost:8000/wp-json/wp/v2/posts", {
@@ -384,8 +326,14 @@ export default {
           body: JSON.stringify(newTask),
         });
         const data = await jwt.json();
+        let taskObj = {};
 
-        console.log(data);
+        taskObj.title = this.cleanTags(data.content.rendered);
+        taskObj.content = this.cleanTags(data.content.rendered);
+        taskObj.status = "publish";
+        taskObj.categories = data.categories;
+
+        this.posts = [...this.posts, taskObj];
       } catch (err) {
         console.log(err);
       }
@@ -436,8 +384,6 @@ export default {
       } catch (err) {
         console.log(err);
       }
-
-      //delete comments of task//
     },
 
     //CRUD COMMENTS
@@ -487,31 +433,33 @@ export default {
     },
 
     //EDIT A COMMENT//
-    async editCommentName(id) {
-      let commentContent = this.editComment;
-
+    async editCommentName(editComment, id) {
       try {
         const res = await fetch(
           `http://localhost:8000/wp-json/wp/v2/comments/${id}`
         );
         const data = await res.json();
+        data.content = editComment.content;
+        data.author = editComment.author;
+        console.log(data);
 
-        data.content.rendered = commentContent;
-
-        await fetch(`http://localhost:8000/wp-json/wp/v2/comments/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-type": "application/json",
-            Authorization: `Bearer ${this.tokens.token}`,
-          },
-          body: JSON.stringify(data),
-        });
+        const res2 = await fetch(
+          `http://localhost:8000/wp-json/wp/v2/comments/${id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-type": "application/json",
+              Authorization: `Bearer ${this.tokens.token}`,
+            },
+            body: JSON.stringify(data),
+          }
+        );
+        const data2 = await res2.json();
+        const commentText = this.cleanTags(data2.content.rendered);
 
         this.comments = this.comments.map((comment) =>
-          comment.id === id ? { ...comment, title: this.editComment } : comment
+          comment.id === id ? { ...comment, content: commentText } : comment
         );
-
-        this.editComment = "";
       } catch (err) {
         console.log(err);
       }

@@ -1,15 +1,19 @@
 <template>
   <div class="one">
-    <form @submit.prevent="onSubmit" class="add-form">
+    <form @submit="onSubmit" class="add-form">
       <div class="form-control">
         <input
           type="content"
           v-model="commentContent"
           name="content"
-          placeholder="Add Comment to the Post"
+          :placeholder="[this.id ? 'Edit Comment' : 'Add Comment']"
         />
       </div>
-      <input type="submit" value="Add comment" class="btn btn-block button3" />
+      <input
+        type="submit"
+        :value="[this.id ? 'Edit Comment' : 'Add Comment']"
+        class="btn btn-block button3"
+      />
     </form>
   </div>
   <!-- form -->
@@ -21,6 +25,7 @@ export default {
   props: {
     post: Number,
     tokens: Object,
+    id: Number,
   },
   data() {
     return {
@@ -36,6 +41,12 @@ export default {
       if (!this.commentContent) {
         alert("Please add a comment");
       }
+
+      const editComment = {
+        content: this.commentContent,
+        author: "1",
+      };
+
       const newComment = {
         post: this.post,
         author_name: this.tokens.user_nicename,
@@ -45,6 +56,8 @@ export default {
       };
 
       this.$emit("add-comment", newComment);
+
+      this.$emit("edit-comment", editComment, this.id);
 
       this.commentContent = "";
     },

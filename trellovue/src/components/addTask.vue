@@ -43,7 +43,7 @@ export default {
 
       const newTask = {
         title: this.title,
-        content: this.content,
+        content: this.title,
         status: this.status,
         categories: this.category,
       };
