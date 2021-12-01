@@ -118,11 +118,11 @@ export default {
 <style scoped>
 h1 {
   margin-top: 90px;
-  font-size: 3rem;
+  font-size: 3.4rem;
 }
 
 h3 {
-  margin-top: 115px;
+  margin-top: 90px;
   font-size: 1.9rem;
 }
 
