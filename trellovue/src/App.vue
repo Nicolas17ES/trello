@@ -23,6 +23,6 @@ html {
   -webkit-font-smoothing: antialiased;
   
   text-align: center;
-  color: #3e79b4;
+  color: rgb(95, 126, 107);
 }
 </style>

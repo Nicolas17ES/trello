@@ -1,12 +1,12 @@
 <template>
   <div class="homeView">
     <h1>WELCOME TO TRELLO</h1>
-    <h3>View your projects:</h3>
+    <h3>View your projects</h3>
     <div class="projectList">
       <div v-for="(project, index) in projects" :key="index" class="project">
         <button
           title="Click to see more"
-          class="fas fa-plus"
+          class="button instagram"
           id="azul"
           @click="
             $router.push({
@@ -15,7 +15,7 @@
             })
           "
         >
-          {{ project.name }}
+          <span class="gradient"></span> {{ project.name }}
         </button>
       </div>
     </div>
@@ -115,17 +115,106 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+h1 {
+  margin-top: 90px;
+  font-size: 3rem;
+}
+
+h3 {
+  margin-top: 115px;
+  font-size: 1.9rem;
+}
 
 .projectList {
   display: flex;
   justify-content: center;
+  align-content: center;
 }
 
 .project {
-  margin-right: 20px;
+  margin-right: 50px;
 }
 .create {
   margin-top: 100px;
+}
+
+.button {
+  display: block;
+  width: 130px;
+  max-width: 100%;
+  margin: 35px auto;
+  margin-bottom: 0;
+  overflow: hidden;
+  position: relative;
+  transform: translatez(0);
+  text-decoration: none;
+  box-sizing: border-box;
+  font-size: 15px;
+  font-weight: bold;
+  box-shadow: 0 9px 18px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  border: none;
+}
+
+.instagram {
+  text-align: center;
+  border-radius: 50px;
+  padding: 10px;
+  color: rgba(40, 146, 81);
+  background: rgba(230, 255, 241, 0.5);
+  transition: all 2s ease-out 0s;
+}
+
+.gradient {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  bottom: auto;
+  margin: auto;
+  z-index: -1;
+  background: radial-gradient(
+    90px circle at top center,
+    rgba(146, 247, 205, 0.9) 30%,
+    rgba(116, 255, 197, 0)
+  );
+  transition: all 0s ease-out 0s;
+  transform: translatex(-140px);
+  animation: 18s linear 0s infinite move;
+}
+
+@keyframes move {
+  0% {
+    transform: translatex(-140px);
+  }
+  25% {
+    transform: translatex(140px);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translatex(140px);
+    opacity: 1;
+    background: radial-gradient(
+      90px circle at bottom center,
+      rgba(146, 247, 205, 0.9) 30%,
+      rgba(116, 255, 197, 0)
+    );
+  }
+  75% {
+    transform: translatex(-140px);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+    transform: translatex(-140px);
+    background: radial-gradient(
+      90px circle at top center,
+      rgba(146, 247, 205, 0.9) 30%,
+      rgba(116, 255, 197, 0)
+    );
+  }
 }
 </style>
