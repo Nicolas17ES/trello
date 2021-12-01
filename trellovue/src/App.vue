@@ -12,10 +12,10 @@ export default {
 <style>
 html {
   background-image: url("./assets/lukas-blazek-EWDvHNNfUmQ-unsplash.jpg");
-  background-repeat: no-repeat;
+  background-repeat: repeat;
   background-size: cover;
   width: 100%;
-  height: 100vh;
+  
 }
 
 #app {

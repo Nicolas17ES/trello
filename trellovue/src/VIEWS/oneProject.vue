@@ -493,6 +493,8 @@ export default {
 
 
 <style scoped>
+
+
 #projectname {
   font-size: 3em;
 }
